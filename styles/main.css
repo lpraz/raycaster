@@ -22,4 +22,8 @@ body {
     left: 1em;
     top: 1em;
     border: 1px solid black;
+    background-color: white;
+    font: 8pt sans-serif;
+    padding: 0.25em;
+    line-height: 0.25em;
 }
