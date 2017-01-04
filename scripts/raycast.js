@@ -6,17 +6,47 @@
 var playerX = 0;
 var playerY = 0;
 var playerAngle = 0;
+var walkState = 0;
+var turnState = 0;
 
-// Rounds to the nearest decimal point based on exp.
+// Rounds val to the nearest decimal point based on exp.
 function round(val, exp) {
     return +(Math.round(val * Math.pow(10, exp)) / Math.pow(10, exp));
 }
 
+// Handles a keydown event.
+function handleKeyDown(e) {
+    if (e.keyCode == 38 && walkState < 1)
+        walkState++;
+    else if (e.keyCode == 40 && walkState > -1)
+        walkState--;
+    else if (e.keyCode == 37 && turnState > -1)
+        turnState--;
+    else if (e.keyCode == 39 && turnState < 1)
+        turnState++;
+}
+
+// Handles a keyup event.
+function handleKeyUp(e) {
+    if (e.keyCode == 38 && walkState > -1)
+        walkState--;
+    else if (e.keyCode == 40 && walkState < 1)
+        walkState++;
+    else if (e.keyCode == 37 && turnState < 1)
+        turnState++;
+    else if (e.keyCode == 39 && turnState > -1)
+        turnState--;
+}
+
 // Updates the player's position.
 function updatePosition() {
-    const SPEED = 0.1;
-    playerX += Math.cos(playerAngle) * SPEED;
-    playerY += Math.sin(playerAngle) * SPEED;
+    const WALK_SPEED = 0.1;
+    const TURN_SPEED = Math.PI / 100;
+    
+    playerX += Math.cos(playerAngle) * WALK_SPEED * walkState;
+    playerY += Math.sin(playerAngle) * WALK_SPEED * walkState;
+    
+    playerAngle += TURN_SPEED * turnState;
 }
 
 // Updates the information in the info box.
@@ -35,6 +65,7 @@ function updateInfoBox() {
 function draw() {
     var canvas = document.getElementById("render-window");
     var context = canvas.getContext("2d");
+    context.imageSmoothingEnabled = false;
     
     // Draw background - sky
     context.fillStyle = "lightblue"
@@ -55,5 +86,7 @@ function gameLoop() {
 
 // Main - when page loaded:
 window.onload = function() {
+    document.getElementById("render-window").onkeydown = handleKeyDown
+    document.getElementById("render-window").onkeyup = handleKeyUp
     requestAnimationFrame(gameLoop);
 }
