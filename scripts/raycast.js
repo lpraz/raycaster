@@ -3,8 +3,8 @@
  * Draws a raycasted view of a map to the canvas.
  */
 
-var playerX = 0;
-var playerY = 0;
+var playerX = 2;
+var playerY = 2;
 var playerAngle = 0;
 var walkState = 0;
 var turnState = 0;
@@ -17,10 +17,10 @@ const map = [
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+[1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+[1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+[1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -81,7 +81,36 @@ function updateInfoBox() {
 
 // Casts a single ray from the player at a given angle.
 function castRay(angle) {
-    return angle;
+    const DRAW_DIST = 30;
+    
+    // Find change in x/change in y necessary to check at grid lines
+    angle %= (Math.PI * 2);
+    var dx = Math.tan(angle);
+    var dy = angle > Math.PI ? -1 : 1;
+    
+    // Ray's position
+    var rayX = playerX;
+    var rayY = playerY;
+    
+    // Distance to wall
+    var distX;
+    var distY;
+    
+    // Send ray out, check at horizontal intersections
+    while (rayX >= 0 && rayX < map.length
+            && rayY >= 0 && rayY < map[0].length) {
+        if (map[Math.floor(rayX)][Math.floor(rayY)] > 0) {
+            distX = rayX - playerX;
+            distY = rayY - playerY;
+            break;
+        } else {
+            // Move the ray up
+            rayX += dx;
+            rayY += dy;
+        }
+    }
+    
+    // TODO: Check at vertical intersections
 }
 
 // Draws the player's view to the canvas.
