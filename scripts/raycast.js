@@ -79,11 +79,11 @@ function updateInfoBox() {
     angleElement.innerHTML = "Angle: " + round(playerAngle, ROUND_TO);
 }
 
-// Casts a single ray from the player at a given angle.
+// Casts a single ray from the player at a given angle, returns distance.
 function castRay(angle) {
     const DRAW_DIST = 30;
     
-    // Find change in x/change in y necessary to check at grid lines
+    // Find change in x/y necessary to check at horizontal intersections
     angle %= (Math.PI * 2);
     var dx = Math.tan(angle);
     var dy = angle > Math.PI ? -1 : 1;
@@ -110,7 +110,33 @@ function castRay(angle) {
         }
     }
     
-    // TODO: Check at vertical intersections
+    // Find change in x/y necessary to check at vertical intersections
+    dy = Math.tan(angle);
+    dx = (angle > Math.PI * 1.5) || (angle < Math.PI * 0.5) ? 1 : -1;
+    
+    // Ray's position
+    rayX = playerX;
+    rayY = playerY;
+    
+    // Send ray out, check at vertical intersections
+    while (rayX >= 0 && rayX < map.length
+            && rayY >= 0 && rayY < map[0].length) {
+        if (map[Math.floor(rayX)][Math.floor(rayY)] > 0) {
+            if (distX > rayX - playerX)
+                distX = rayX - playerX;
+            
+            if (distY > rayY - playerY)
+                distY = rayY - playerY;
+            
+            break;
+        } else {
+            // Move the ray up
+            rayX += dx;
+            rayY += dy;
+        }
+    }
+   
+    return Math.sqrt(distX * distX + distY * distY);
 }
 
 // Draws the player's view to the canvas.
