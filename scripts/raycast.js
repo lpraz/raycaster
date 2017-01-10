@@ -17,10 +17,10 @@ const map = [
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-[1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-[1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-[1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-[1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -38,10 +38,10 @@ function handleKeyDown(e) {
         walkState++;
     else if (e.keyCode == 40 && walkState > -1)
         walkState--;
-    else if (e.keyCode == 37 && turnState > -1)
-        turnState--;
-    else if (e.keyCode == 39 && turnState < 1)
+    else if (e.keyCode == 37 && turnState < 1)
         turnState++;
+    else if (e.keyCode == 39 && turnState > -1)
+        turnState--;
 }
 
 // Handles a keyup event.
@@ -50,10 +50,10 @@ function handleKeyUp(e) {
         walkState--;
     else if (e.keyCode == 40 && walkState < 1)
         walkState++;
-    else if (e.keyCode == 37 && turnState < 1)
-        turnState++;
-    else if (e.keyCode == 39 && turnState > -1)
+    else if (e.keyCode == 37 && turnState > -1)
         turnState--;
+    else if (e.keyCode == 39 && turnState < 1)
+        turnState++;
 }
 
 // Updates the player's position.
@@ -83,14 +83,19 @@ function updateInfoBox() {
 function castRay(angle) {
     const DRAW_DIST = 30;
     
+    angle %= Math.PI * 2;
+    
+    // Moving right/up?
+    var up = angle < Math.PI;
+    var right = (angle > Math.PI * 1.5) || (angle < Math.PI * 0.5);
+    
     // Find change in x/y necessary to check at horizontal intersections
-    angle %= (Math.PI * 2);
-    var dx = Math.tan(angle);
-    var dy = angle > Math.PI ? -1 : 1;
+    var dx = 1 / Math.tan(angle);
+    var dy = up ? -1 : 1;
     
     // Ray's position
-    var rayX = playerX;
-    var rayY = playerY;
+    var rayX = up ? Math.ceil(playerX) : Math.floor(playerX);
+    var rayY = playerY + (rayX - playerX) * Math.tan(angle);
     
     // Distance to wall
     var distX;
@@ -100,28 +105,28 @@ function castRay(angle) {
     while (rayX >= 0 && rayX < map.length
             && rayY >= 0 && rayY < map[0].length) {
         if (map[Math.floor(rayX)][Math.floor(rayY)] > 0) {
-            distX = rayX - playerX;
-            distY = rayY - playerY;
+            distX = Math.abs(rayX - playerX);
+            distY = Math.abs(rayY - playerY);
             break;
         } else {
-            // Move the ray up
+            // Move the ray by a unit
             rayX += dx;
             rayY += dy;
         }
     }
     
     // Find change in x/y necessary to check at vertical intersections
-    dy = Math.tan(angle);
-    dx = (angle > Math.PI * 1.5) || (angle < Math.PI * 0.5) ? 1 : -1;
+    dx = right ? 1 : -1;
+    dy = 1 / Math.tan(angle);
     
     // Ray's position
-    rayX = playerX;
-    rayY = playerY;
+    rayX = right ? Math.ceil(playerX) : Math.floor(playerX);
+    rayY = playerY + (rayX - playerX) * Math.tan(angle);
     
     // Send ray out, check at vertical intersections
     while (rayX >= 0 && rayX < map.length
             && rayY >= 0 && rayY < map[0].length) {
-        if (map[Math.floor(rayX)][Math.floor(rayY)] > 0) {
+        if (map[Math.floor(rayX + right ? 0 : -1)][Math.floor(rayY)] > 0) {
             if (distX > rayX - playerX)
                 distX = rayX - playerX;
             
@@ -130,13 +135,13 @@ function castRay(angle) {
             
             break;
         } else {
-            // Move the ray up
+            // Move the ray by a unit
             rayX += dx;
             rayY += dy;
         }
     }
-   
-    return Math.sqrt(distX * distX + distY * distY);
+    
+    return Math.sqrt((distX * distX) + (distY * distY));
 }
 
 // Draws the player's view to the canvas.
@@ -159,10 +164,10 @@ function draw() {
     context.fillStyle = "grey"
     for (var i = 0; i < canvas.width; i++) {
         var colHeight = castRay(
-            100 * (playerAngle + (FOV * (i / canvas.width)) - (FOV / 2))
-        );
-        context.fillRect(i, (canvas.height / 2) - (colHeight / 2),
-                1, colHeight);
+            playerAngle - (FOV * (i / canvas.width)) + (FOV / 2)
+        ) * 25;
+        context.fillRect(i, colHeight,
+                1, canvas.height - colHeight * 2);
     }
 }
 
