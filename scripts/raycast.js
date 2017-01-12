@@ -62,9 +62,13 @@ function updatePosition() {
     const TURN_SPEED = Math.PI / 100;
     
     playerX += Math.cos(playerAngle) * WALK_SPEED * walkState;
-    playerY += Math.sin(playerAngle) * WALK_SPEED * walkState;
+    playerY += -Math.sin(playerAngle) * WALK_SPEED * walkState;
     
     playerAngle += TURN_SPEED * turnState;
+    if (playerAngle > (Math.PI * 2))
+        playerAngle -= Math.PI * 2;
+    else if (playerAngle < 0)
+        playerAngle += Math.PI * 2;
 }
 
 // Updates the information in the info box.
@@ -83,7 +87,10 @@ function updateInfoBox() {
 function castRay(angle) {
     const DRAW_DIST = 30;
     
-    angle %= Math.PI * 2;
+    if (angle > Math.PI * 2)
+        angle -= Math.PI * 2;
+    else if (angle < 0)
+        angle += Math.PI * 2;
     
     // Moving right/up?
     var up = angle < Math.PI;
@@ -98,15 +105,14 @@ function castRay(angle) {
     var rayY = playerY + (rayX - playerX) * Math.tan(angle);
     
     // Distance to wall
-    var distX;
-    var distY;
+    var dist;
     
     // Send ray out, check at horizontal intersections
     while (rayX >= 0 && rayX < map.length
-            && rayY >= 0 && rayY < map[0].length) {
-        if (map[Math.floor(rayX)][Math.floor(rayY)] > 0) {
-            distX = Math.abs(rayX - playerX);
-            distY = Math.abs(rayY - playerY);
+            && rayY >= 0 && rayY < map[rayX].length) {
+        if (map[Math.floor(rayX)][Math.floor(rayY + up ? 0 : -1)] > 0) {
+            dist = Math.sqrt((rayX - playerX) * (rayX - playerX)
+                    + (rayY - playerY) * (rayY - playerY));
             break;
         } else {
             // Move the ray by a unit
@@ -127,30 +133,28 @@ function castRay(angle) {
     while (rayX >= 0 && rayX < map.length
             && rayY >= 0 && rayY < map[0].length) {
         if (map[Math.floor(rayX + right ? 0 : -1)][Math.floor(rayY)] > 0) {
-            if (distX > rayX - playerX)
-                distX = rayX - playerX;
-            
-            if (distY > rayY - playerY)
-                distY = rayY - playerY;
-            
+            if (dist > Math.sqrt((rayX - playerX) * (rayX - playerX)
+                    + (rayY - playerY) * (rayY - playerY)))
+                dist = Math.sqrt((rayX - playerX) * (rayX - playerX)
+                        + (rayY - playerY) * (rayY - playerY));
             break;
         } else {
             // Move the ray by a unit
-            rayX += dx;
+            rayX += dx;a
             rayY += dy;
         }
     }
     
-    return Math.sqrt((distX * distX) + (distY * distY));
+    return dist;
 }
 
 // Draws the player's view to the canvas.
 function draw() {
-    const FOV = Math.PI / 3;
+    const FOV = Math.PI / 2;
     
     var canvas = document.getElementById("render-window");
     var context = canvas.getContext("2d");
-    context.imageSmoothingEnabled = false;
+    var rayAngle = playerAngle + (FOV / 2);
     
     // Draw background - sky
     context.fillStyle = "lightblue"
@@ -163,11 +167,10 @@ function draw() {
     // Draw walls (the fun part)
     context.fillStyle = "grey"
     for (var i = 0; i < canvas.width; i++) {
-        var colHeight = castRay(
-            playerAngle - (FOV * (i / canvas.width)) + (FOV / 2)
-        ) * 25;
-        context.fillRect(i, colHeight,
-                1, canvas.height - colHeight * 2);
+        var distProjPlane = canvas.width / 2 * Math.tan(FOV / 2);
+        var colHeight = (1 / castRay(rayAngle)) * distProjPlane;
+        context.fillRect(i, (canvas.height - colHeight) / 2, 1, colHeight);
+        rayAngle -= FOV / canvas.width;
     }
 }
 
