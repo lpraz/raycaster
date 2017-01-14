@@ -94,22 +94,22 @@ function castRay(angle) {
     
     // Moving right/up?
     var up = angle < Math.PI;
-    var right = (angle > Math.PI * 1.5) || (angle < Math.PI * 0.5);
+    var left = (angle < Math.PI * 1.5) && (angle > Math.PI * 0.5);
     
     // Find change in x/y necessary to check at horizontal intersections
     var dx = 1 / Math.tan(angle);
     var dy = up ? -1 : 1;
     
     // Ray's position
-    var rayX = up ? Math.ceil(playerX) : Math.floor(playerX);
-    var rayY = playerY + (rayX - playerX) * Math.tan(angle);
+    var rayY = up ? Math.floor(playerY): Math.ceil(playerY);
+    var rayX = (playerX + (rayY - playerY)) / Math.tan(angle);
     
     // Distance to wall
     var dist;
     
     // Send ray out, check at horizontal intersections
     while (rayX >= 0 && rayX < map.length
-            && rayY >= 0 && rayY < map[rayX].length) {
+            && rayY >= 0 && rayY < map[0].length) {
         if (map[Math.floor(rayX)][Math.floor(rayY + up ? 0 : -1)] > 0) {
             dist = Math.sqrt((rayX - playerX) * (rayX - playerX)
                     + (rayY - playerY) * (rayY - playerY));
@@ -122,17 +122,17 @@ function castRay(angle) {
     }
     
     // Find change in x/y necessary to check at vertical intersections
-    dx = right ? 1 : -1;
+    dx = left ? -1 : 1;
     dy = 1 / Math.tan(angle);
     
     // Ray's position
-    rayX = right ? Math.ceil(playerX) : Math.floor(playerX);
-    rayY = playerY + (rayX - playerX) * Math.tan(angle);
+    rayX = left ? Math.floor(playerX) : Math.ceil(playerX);
+    rayY = (playerY + (rayX - playerX)) / Math.tan(angle);
     
     // Send ray out, check at vertical intersections
     while (rayX >= 0 && rayX < map.length
             && rayY >= 0 && rayY < map[0].length) {
-        if (map[Math.floor(rayX + right ? 0 : -1)][Math.floor(rayY)] > 0) {
+        if (map[Math.floor(rayX + left ? 0 : -1)][Math.floor(rayY)] > 0) {
             if (dist > Math.sqrt((rayX - playerX) * (rayX - playerX)
                     + (rayY - playerY) * (rayY - playerY)))
                 dist = Math.sqrt((rayX - playerX) * (rayX - playerX)
@@ -140,7 +140,7 @@ function castRay(angle) {
             break;
         } else {
             // Move the ray by a unit
-            rayX += dx;a
+            rayX += dx;
             rayY += dy;
         }
     }
