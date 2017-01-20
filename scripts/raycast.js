@@ -101,25 +101,26 @@ function castRay(angle) {
     
     // Ray's position
     var rayY = up ? Math.floor(playerY): Math.ceil(playerY);
-    var rayX = playerX + (rayY - playerY) / Math.tan(angle);
+    var rayX = playerX + ((rayY - playerY) / Math.tan(angle));
     
     // Distance to wall
     var distHoriz, distVert;
     
-    // Send ray out, check at horizontal intersections
+    // Send ray out, check at horizontal grid lines
     while (rayX >= 0 && rayX < map.length
             && rayY >= 0 && rayY < map[0].length) {
         var wallX = Math.floor(rayX);
         var wallY = Math.floor(rayY + (up ? -1 : 0));
         if (map[wallY][wallX] > 0) {
-            distHoriz = Math.sqrt((rayX - playerX) * (rayX - playerX)
-                    + (rayY - playerY) * (rayY - playerY));
+            // Find distance, break
+            distHoriz = Math.sqrt(((rayX - playerX) * (rayX - playerX))
+                    + ((rayY - playerY) * (rayY - playerY)));
             break;
-        } else {
-            // Move the ray by a unit
-            rayX += dx;
-            rayY += dy;
         }
+        
+        // Move the ray by a unit
+        rayX += dx;
+        rayY += dy;
     }
     
     // Find change in x/y necessary to check at vertical grid lines
@@ -128,25 +129,30 @@ function castRay(angle) {
     
     // Ray's position
     rayX = left ? Math.floor(playerX) : Math.ceil(playerX);
-    rayY = playerY + (rayX - playerX) / Math.tan(angle);
+    rayY = playerY + ((rayX - playerX) * Math.tan(angle));
     
-    // Send ray out, check at vertical intersections
+    // Send ray out, check at vertical grid lines
     while (rayX >= 0 && rayX < map.length
             && rayY >= 0 && rayY < map[0].length) {
         wallX = Math.floor(rayX + (left ? -1 : 0));
         wallY = Math.floor(rayY);
         if (map[wallY][wallX] > 0) {
-            distVert = Math.sqrt((rayX - playerX) * (rayX - playerX)
-                    + (rayY - playerY) * (rayY - playerY));
+            // Find distance, break
+            distVert = Math.sqrt(((rayX - playerX) * (rayX - playerX))
+                    + ((rayY - playerY) * (rayY - playerY)));
             break;
-        } else {
-            // Move the ray by a unit
-            rayX += dx;
-            rayY += dy;
         }
+        
+        // Move the ray by a unit
+        rayX += dx;
+        rayY += dy;
     }
     
-    return Math.min(distHoriz, distVert);
+    //return Math.min(distHoriz, distVert);
+    
+    // Debug
+    return distHoriz;
+    //return distVert;
 }
 
 // Draws the player's view to the canvas.
