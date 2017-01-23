@@ -175,7 +175,9 @@ function draw() {
     context.fillStyle = "grey"
     for (var i = 0; i < canvas.width; i++) {
         var distProjPlane = canvas.width / 2 * Math.tan(FOV / 2);
-        var colHeight = (1 / castRay(rayAngle)) * distProjPlane;
+        var rayDistAdj = castRay(rayAngle)
+                * Math.cos(playerAngle - rayAngle);
+        var colHeight = (1 / rayDistAdj) * distProjPlane;
         context.fillRect(i, (canvas.height - colHeight) / 2, 1, colHeight);
         rayAngle -= FOV / canvas.width;
     }
